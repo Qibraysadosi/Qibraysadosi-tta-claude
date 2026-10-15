@@ -22,6 +22,7 @@ export interface EngineStartOptions {
   env: Record<string, string | undefined>;
   disallowedTools?: string[];
   allowedTools?: string[];
+  tools?: string[];
   canUseTool: CanUseTool;
   abortController: AbortController;
   additionalDirectories?: string[];
@@ -103,6 +104,7 @@ export class SdkEngine implements Engine {
           env: opts.env,
           disallowedTools: opts.disallowedTools,
           allowedTools: opts.allowedTools,
+          tools: opts.tools,
           canUseTool: opts.canUseTool,
           abortController: opts.abortController,
           additionalDirectories: opts.additionalDirectories,

@@ -45,6 +45,29 @@ export function startFakeAnthropic(): Promise<FakeApi> {
       const hasToolResult = lastText.includes('"tool_result"');
       const wantsTool = /vosita/.test(lastText) && !hasToolResult;
       const id = 'msg_' + Math.random().toString(36).slice(2, 8);
+      // "reja" ssenariysi: TaskCreate → TaskUpdate → matn (vazifa vositalari bilan jarayon paneli sinovi)
+      const rejaIdx = messages.map((m) => (m.role === 'user' && /reja tuz/.test(JSON.stringify(m.content)) ? 1 : 0)).lastIndexOf(1);
+      if (rejaIdx >= 0) {
+        const after = messages.slice(rejaIdx + 1).filter((m) => m.role === 'assistant').length;
+        const toolUse = (name: string, input: Record<string, unknown>, tid: string): void =>
+          sse(res, [
+            { type: 'message_start', message: { id, type: 'message', role: 'assistant', model, content: [], stop_reason: null, stop_sequence: null, usage } },
+            { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: tid, name, input: {} } },
+            { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify(input) } },
+            { type: 'content_block_stop', index: 0 },
+            { type: 'message_delta', delta: { stop_reason: 'tool_use', stop_sequence: null }, usage: { output_tokens: 20 } },
+            { type: 'message_stop' },
+          ]);
+        if (after === 0) {
+          toolUse('TaskCreate', { subject: 'Birinchi qadam', description: 'Sinov', activeForm: 'Birinchi qadam bajarilmoqda' }, 'toolu_task1');
+          return;
+        }
+        if (after === 1) {
+          const m = /#(\d+)/.exec(lastText);
+          toolUse('TaskUpdate', { taskId: m ? m[1] : '1', status: 'completed' }, 'toolu_task2');
+          return;
+        }
+      }
       if (wantsTool) {
         const input = JSON.stringify({ command: 'touch salom.txt && echo salom', description: 'Fayl yaratish' });
         sse(res, [

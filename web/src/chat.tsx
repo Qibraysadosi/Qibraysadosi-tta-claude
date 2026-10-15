@@ -37,6 +37,8 @@ function toolTitle(name: string): string {
     case 'Agent':
       return t('tool_agent');
     case 'TodoWrite':
+    case 'TaskCreate':
+    case 'TaskUpdate':
       return t('tool_todo');
     case 'Skill':
       return t('tool_skill');
@@ -129,10 +131,12 @@ function ToolCard({ block, view }: { block: { id: string; name: string; input: R
   const elapsed = view.progress.get(block.id);
   const name = block.name;
   if (name === 'AskUserQuestion' || name === 'ExitPlanMode' || name === 'EnterPlanMode') return null;
-  if (name === 'TodoWrite') {
+  if (name === 'TaskList' || name === 'TaskGet') return null;
+  if (name === 'TodoWrite' || name === 'TaskCreate' || name === 'TaskUpdate') {
     return (
       <div class="tool-chip">
         <Icon name="list" size={14} /> {t('tool_todo')}
+        {name === 'TaskCreate' && typeof block.input.subject === 'string' ? ': ' + block.input.subject : ''}
       </div>
     );
   }

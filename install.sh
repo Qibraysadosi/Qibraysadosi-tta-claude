@@ -71,7 +71,7 @@ if [[ ! "$key" =~ $KEY_RE ]]; then
   if [[ "$key" =~ $KEY_RE ]]; then save ANTHROPIC_API_KEY "$key"; else echo "ℹ️  Kalit keyinroq admin panelida kiritiladi."; fi
 fi
 chmod 600 .env
-mkdir -p data
+mkdir -p data && chown -R 1000:1000 data 2>/dev/null || true
 echo "⏳ Yig'ilmoqda va ishga tushirilmoqda (3–6 daqiqa)..."
 docker compose up -d --build
 sleep 10

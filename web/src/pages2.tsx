@@ -686,7 +686,7 @@ export function LoginPage(): JSX.Element {
       await api.post('/api/login', { login, password });
       await loadApp();
       await loadUserData();
-      navigate('/');
+      navigate(user.value?.must_change_password ? '/settings' : '/');
     } catch (ex) {
       setErr((ex as Error).message || t('login_error'));
     } finally {

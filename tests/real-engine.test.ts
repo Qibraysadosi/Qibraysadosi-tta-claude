@@ -100,8 +100,16 @@ describe('haqiqiy dvigatel (soxta API bilan)', { skip: !RUN }, () => {
     const tr = events.map((e) => e.ev).find((e) => e.t === 'tool_result') as Extract<ChatEvent, { t: 'tool_result' }>;
     assert.match(JSON.stringify(tr.content), /salom/);
     await wait((e) => e.t === 'result' && (events.filter((x) => x.ev.t === 'result').length >= 2));
+    // uchinchi tur: TaskCreate/TaskUpdate → jarayon paneli
+    ws.send(JSON.stringify({ a: 'send', session_id: s.id, text: 'reja tuz' }));
+    await wait((e) => e.t === 'todos' && e.items.length === 1 && e.items[0].status === 'completed');
+    const todos = events.map((e) => e.ev).filter((e) => e.t === 'todos') as Array<Extract<ChatEvent, { t: 'todos' }>>;
+    assert.equal(todos[0].items[0].content, 'Birinchi qadam');
+    assert.ok(todos[0].items[0].id, 'vazifa raqami tool_result dan olinadi');
+    await wait((e) => e.t === 'result' && events.filter((x) => x.ev.t === 'result').length >= 3);
     const info = await call('GET', `/api/sessions/${s.id}`);
-    assert.equal((info.json.session as SessionInfo).turns, 2);
+    assert.equal((info.json.session as SessionInfo).turns, 3);
+    assert.equal((info.json.todos as unknown[]).length, 1);
     assert.ok((info.json.session as SessionInfo).sdk_session_id);
     ws.close();
   });

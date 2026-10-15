@@ -68,9 +68,35 @@ export const DISALLOWED_TOOLS = [
   'Monitor',
   'ListAgents',
   'SendMessage',
+  'ReportFindings',
+  'DesignSync',
 ];
 
 const FILE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
+
+// Asosiy agentga beriladigan vositalar (native binar Glob/Grep va vazifa vositalarini faqat aniq ro'yxatda beradi).
+export const AGENT_TOOLS = [
+  'Agent',
+  'AskUserQuestion',
+  'Bash',
+  'Edit',
+  'EnterPlanMode',
+  'ExitPlanMode',
+  'NotebookEdit',
+  'Read',
+  'Skill',
+  'TaskStop',
+  'WebFetch',
+  'WebSearch',
+  'Write',
+  'Glob',
+  'Grep',
+  'TaskCreate',
+  'TaskUpdate',
+  'TaskList',
+  'TaskGet',
+  'TodoWrite',
+];
 
 export class SessionRunner {
   private handle: EngineHandle | null = null;
@@ -89,6 +115,7 @@ export class SessionRunner {
   private resumeId: string | null;
   private fileTouched = new Map<string, number>();
   private queuedTurns = 0;
+  private taskCreates = new Map<string, { subject: string; activeForm?: string }>(); // TaskCreate tool_use id → ma'lumot
   /** Rejali (so'ralmaydigan) ish: ruxsat so'rovlari avtomatik rad etiladi, byudjet/qadam chegarasi bor. */
   public headless: { maxBudgetUsd: number; maxTurns: number } | null = null;
   public lastResultOk = false;
@@ -200,6 +227,7 @@ export class SessionRunner {
       agent: this.session.agent && agents[this.session.agent] ? this.session.agent : undefined,
       env,
       disallowedTools: DISALLOWED_TOOLS,
+      tools: AGENT_TOOLS,
       canUseTool: (toolName, input, options) => this.onPermission(toolName, input, options),
       abortController: this.abort,
       claudeBinary: config.claudeBinary,
@@ -490,6 +518,7 @@ export class SessionRunner {
         if (!Array.isArray(content)) break;
         for (const b of content as Array<Record<string, unknown>>) {
           if (b.type !== 'tool_result') continue;
+          this.onTaskCreated(String(b.tool_use_id), b.content, ts);
           this.emit(
             {
               t: 'tool_result',
@@ -526,9 +555,37 @@ export class SessionRunner {
       this.todos = (b.input.todos as TodoItem[]).map((t) => ({ content: String(t.content ?? ''), status: t.status ?? 'pending', activeForm: t.activeForm }));
       this.emit({ t: 'todos', items: this.todos, ts }, true);
     }
+    if (b.name === 'TaskCreate') {
+      this.taskCreates.set(b.id, { subject: String(b.input?.subject ?? ''), activeForm: typeof b.input?.activeForm === 'string' ? b.input.activeForm : undefined });
+    }
+    if (b.name === 'TaskUpdate' && b.input?.taskId !== undefined) {
+      const id = String(b.input.taskId);
+      const status = b.input.status as string | undefined;
+      if (status === 'deleted') this.todos = this.todos.filter((t) => t.id !== id);
+      else {
+        this.todos = this.todos.map((t) =>
+          t.id === id
+            ? { ...t, status: status === 'completed' ? 'completed' : status === 'in_progress' ? 'in_progress' : status === 'pending' ? 'pending' : t.status, content: typeof b.input?.subject === 'string' ? b.input.subject : t.content, activeForm: typeof b.input?.activeForm === 'string' ? b.input.activeForm : t.activeForm }
+            : t,
+        );
+      }
+      this.emit({ t: 'todos', items: this.todos, ts }, true);
+    }
     if (FILE_TOOLS.has(b.name) && typeof b.input?.file_path === 'string') {
       this.fileTouched.set(b.input.file_path, ts);
     }
+  }
+
+  private onTaskCreated(toolUseId: string, content: unknown, ts: number): void {
+    const info = this.taskCreates.get(toolUseId);
+    if (!info) return;
+    this.taskCreates.delete(toolUseId);
+    const text = typeof content === 'string' ? content : JSON.stringify(content ?? '');
+    const m = /#(\d+)/.exec(text);
+    const id = m ? m[1] : String(this.todos.length + 1);
+    if (this.todos.some((t) => t.id === id)) return;
+    this.todos = [...this.todos, { id, content: info.subject, status: 'pending', activeForm: info.activeForm }];
+    this.emit({ t: 'todos', items: this.todos, ts }, true);
   }
 
   private onTask(sub: string, m: Record<string, unknown>, ts: number): void {

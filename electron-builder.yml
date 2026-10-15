@@ -9,6 +9,7 @@ files:
   - web/dist/**
   - VERSION
   - package.json
+  - build/icon.png
   - "!**/*.map"
 asar: true
 asarUnpack:
