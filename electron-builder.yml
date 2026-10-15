@@ -1,0 +1,33 @@
+appId: uz.tta.claude
+productName: TTA CLAUDE
+copyright: TTA
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**
+  - web/dist/**
+  - VERSION
+  - package.json
+  - "!**/*.map"
+asar: true
+asarUnpack:
+  - "node_modules/@anthropic-ai/claude-agent-sdk-*/**"
+npmRebuild: false
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+  artifactName: "TTA-CLAUDE-Setup-${version}.${ext}"
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: TTA CLAUDE
+  language: 1033
+linux:
+  target: [dir]
+  icon: build/icon.png
+  category: Office

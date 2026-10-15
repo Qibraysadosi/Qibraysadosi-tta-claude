@@ -1,0 +1,21 @@
+services:
+  tta-claude:
+    build: .
+    container_name: tta-claude
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATA_DIR=/data
+      - HOST=0.0.0.0
+      - PORT=8095
+    ports:
+      - "127.0.0.1:${PORT:-8095}:8095"
+    volumes:
+      - ./data:/data
+    mem_limit: 3g
+    cpus: 2
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
