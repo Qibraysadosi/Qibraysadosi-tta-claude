@@ -269,7 +269,7 @@ describe('server', () => {
     assert.equal(r.status, 200);
     const sch = r.json.schedule as { next_run: number; mode: string };
     assert.ok(sch.next_run > Date.now());
-    assert.equal(sch.mode, 'acceptEdits');
+    assert.equal(sch.mode, 'auto');
     const bad = await t.api('POST', '/api/schedules', { title: 'x', prompt: 'y', spec: { kind: 'hourly' } });
     assert.equal(bad.status, 400);
   });

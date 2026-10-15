@@ -28,7 +28,11 @@ function TopBar({ title, right }: { title: string; right?: JSX.Element | null })
 export function HomePage(): JSX.Element {
   const u = user.value!;
   const [projectId, setProjectId] = useState<string>(localStorage.getItem('tta.project') || projects.value[0]?.id || '');
-  const [agent, setAgent] = useState<string>('');
+  const [agent, setAgent] = useState<string>(() => {
+    const a = localStorage.getItem('tta.agent') ?? '';
+    localStorage.removeItem('tta.agent');
+    return agents.value.some((x) => x.name === a) ? a : '';
+  });
   const [newProj, setNewProj] = useState(false);
   useEffect(() => {
     if (!projects.value.some((p) => p.id === projectId)) setProjectId(projects.value[0]?.id ?? '');

@@ -342,7 +342,7 @@ function saveSchedule(service: Service, c: Ctx, b: Partial<Schedule>, id?: strin
     title: String(b.title ?? existing?.title ?? '').trim().slice(0, 80) || prompt.slice(0, 40),
     prompt: prompt.slice(0, 8000),
     model: service.validModel(String(b.model ?? existing?.model ?? user.default_model)),
-    mode: (b.mode === 'default' ? 'acceptEdits' : service.validMode(user, (b.mode ?? existing?.mode ?? 'acceptEdits') as PermissionMode)),
+    mode: b.mode === 'default' ? 'auto' : service.validMode(user, (b.mode ?? existing?.mode ?? 'auto') as PermissionMode),
     spec,
     enabled: typeof b.enabled === 'boolean' ? b.enabled : (existing?.enabled ?? true),
     last_run: existing?.last_run ?? null,

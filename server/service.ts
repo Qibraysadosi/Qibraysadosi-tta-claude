@@ -287,7 +287,9 @@ export class Service {
   envForUser(user: UserRecord): Record<string, string | undefined> {
     const env: Record<string, string | undefined> = {};
     for (const [k, v] of Object.entries(process.env)) {
+      // Maxfiy qiymatlar va uy muhitining Claude/Anthropic sozlamalari subprotsessga o'tmaydi
       if (/(SECRET|PASSWORD|_TOKEN|API_KEY|APIKEY|PAROL)/i.test(k)) continue;
+      if (/^(CLAUDE|ANTHROPIC|CCR_|AI_AGENT)/i.test(k)) continue;
       env[k] = v;
     }
     const dirs = this.userDirs(user);

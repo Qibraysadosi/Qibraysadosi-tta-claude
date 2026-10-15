@@ -198,7 +198,7 @@ export function SchedulesPage(): JSX.Element {
       <TopBar
         title={t('schedules')}
         right={
-          <button class="btn primary small" onClick={() => setEdit({ title: '', prompt: '', project_id: projects.value[0]?.id, model: user.value!.default_model, mode: 'acceptEdits', spec: { kind: 'daily', time: '09:00' }, enabled: true, max_budget_usd: 2 })}>
+          <button class="btn primary small" onClick={() => setEdit({ title: '', prompt: '', project_id: projects.value[0]?.id, model: user.value!.default_model, mode: 'auto', spec: { kind: 'daily', time: '09:00' }, enabled: true, max_budget_usd: 2 })}>
             <Icon name="plus" size={14} /> {t('new_schedule')}
           </button>
         }
@@ -310,8 +310,8 @@ export function SchedulesPage(): JSX.Element {
               <input class="input" type="number" step="0.5" min={0.1} value={edit.max_budget_usd ?? 2} onInput={(e) => setEdit({ ...edit, max_budget_usd: Number((e.target as HTMLInputElement).value) })} />
             </Field>
             <Field label={t('mode')}>
-              <select class="select" value={edit.mode ?? 'acceptEdits'} onChange={(e) => setEdit({ ...edit, mode: (e.target as HTMLSelectElement).value as PermissionMode })}>
-                {['acceptEdits', 'auto', 'plan'].map((m) => (
+              <select class="select" value={edit.mode ?? 'auto'} onChange={(e) => setEdit({ ...edit, mode: (e.target as HTMLSelectElement).value as PermissionMode })}>
+                {['auto', 'acceptEdits', 'plan'].map((m) => (
                   <option key={m} value={m}>
                     {t(`mode_${m}` as never)}
                   </option>

@@ -49,6 +49,7 @@ Dasturni o'zingiz yig'ish (Windows'da): `npm ci && npm run dist:win` → `releas
 npm ci
 npm run build          # server (tsc) + web (esbuild)
 npm test               # soxta dvigatel bilan 23 ta test
+RUN_REAL=1 node --test dist/tests/real-engine.test.js   # haqiqiy Claude Code binari + soxta Anthropic API (kalit kerak emas)
 npm run typecheck
 node scripts/serve-fake.mjs 8097    # soxta dvigatel bilan UI (admin / admin123)
 python3 scripts/ui_shots.py         # Playwright skrinshotlari (docs/screens)
