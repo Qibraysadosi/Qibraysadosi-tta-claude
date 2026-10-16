@@ -1,13 +1,13 @@
 // Sahifalar: bosh (yangi suhbat), suhbat, loyihalar, natijalar.
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import type { Attachment, Project, SessionInfo } from '../../shared/protocol';
+import type { Attachment, PermissionMode, Project, SessionInfo } from '../../shared/protocol';
 import { api } from './api';
-import { Composer, MessageList } from './chat';
+import { Composer, MessageList, MODES } from './chat';
 import { Icon } from './icons';
 import { t } from './i18n';
 import { FileRow, RightPanel } from './panel';
-import { agents, app, currentSession, isDesktop, navigate, openSession, projectById, projects, refreshProjects, refreshSessions, rightPanelOpen, sessions, sidebarOpen, toast, user, ws } from './state';
+import { agents, app, currentSession, isAdmin, isDesktop, navigate, openSession, projectById, projects, refreshProjects, refreshSessions, rightPanelOpen, sessions, sidebarOpen, toast, user, ws } from './state';
 import { Empty, Field, Modal, fmtBytes, fmtDate } from './ui';
 
 function TopBar({ title, right }: { title: string; right?: JSX.Element | null }): JSX.Element {
@@ -34,11 +34,18 @@ export function HomePage(): JSX.Element {
     return agents.value.some((x) => x.name === a) ? a : '';
   });
   const [newProj, setNewProj] = useState(false);
+  const [model, setModel] = useState<string>(localStorage.getItem('tta.model') || u.default_model);
+  const [mode, setMode] = useState<PermissionMode>((localStorage.getItem('tta.mode') as PermissionMode) || u.default_mode);
+  const [kind, setKind] = useState<'agent' | 'chat'>((localStorage.getItem('tta.kind') as 'agent' | 'chat') || 'agent');
   useEffect(() => {
     if (!projects.value.some((p) => p.id === projectId)) setProjectId(projects.value[0]?.id ?? '');
   }, [projects.value]);
+  const modes = MODES.filter((m) => m !== 'bypassPermissions' || isAdmin.value);
   const start = async (text: string, atts: Attachment[]): Promise<void> => {
-    const r = await api.post<{ session: SessionInfo }>('/api/sessions', { project_id: projectId || undefined, model: u.default_model, mode: u.default_mode, agent: agent || null });
+    localStorage.setItem('tta.model', model);
+    localStorage.setItem('tta.mode', mode);
+    localStorage.setItem('tta.kind', kind);
+    const r = await api.post<{ session: SessionInfo }>('/api/sessions', { project_id: projectId || undefined, model, mode, kind, agent: agent || null });
     sessions.value = [r.session, ...sessions.value];
     const view = openSession(r.session.id);
     void view;
@@ -61,6 +68,39 @@ export function HomePage(): JSX.Element {
           <p class="muted">{t('welcome_sub')}</p>
         </div>
         <div class="home-opts">
+          <label class="opt" title={t('kind')}>
+            <Icon name={kind === 'chat' ? 'spark' : 'bot'} size={15} />
+            <select class="select" value={kind} onChange={(e) => setKind((e.target as HTMLSelectElement).value as 'agent' | 'chat')}>
+              <option value="agent" title={t('kind_agent_desc')}>
+                {t('kind_agent')}
+              </option>
+              <option value="chat" title={t('kind_chat_desc')}>
+                {t('kind_chat')}
+              </option>
+            </select>
+          </label>
+          <label class="opt" title={t('model')}>
+            <Icon name="cpu" size={15} />
+            <select class="select" value={model} onChange={(e) => setModel((e.target as HTMLSelectElement).value)}>
+              {app.value?.models.map((m) => (
+                <option key={m.value} value={m.value} title={m.description}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {kind === 'agent' && (
+            <label class="opt" title={t('mode')}>
+              <Icon name="sliders" size={15} />
+              <select class="select" value={mode} onChange={(e) => setMode((e.target as HTMLSelectElement).value as PermissionMode)}>
+                {modes.map((m) => (
+                  <option key={m} value={m} title={t(`mode_${m}_desc` as never)}>
+                    {t(`mode_${m}` as never)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label class="opt">
             <Icon name="folder" size={15} />
             <select class="select" value={projectId} onChange={(e) => (setProjectId((e.target as HTMLSelectElement).value), localStorage.setItem('tta.project', (e.target as HTMLSelectElement).value))}>
@@ -78,7 +118,7 @@ export function HomePage(): JSX.Element {
             <label class="opt">
               <Icon name="bot" size={15} />
               <select class="select" value={agent} onChange={(e) => setAgent((e.target as HTMLSelectElement).value)}>
-                <option value="">{t('model')}: {app.value?.models.find((m) => m.value === u.default_model)?.label ?? u.default_model}</option>
+                <option value="">{t('agents')}: —</option>
                 {agents.value.map((a) => (
                   <option key={a.id} value={a.name}>
                     {t('agents')}: {a.title}
@@ -101,7 +141,7 @@ export function HomePage(): JSX.Element {
             ))}
           </div>
         )}
-        <div class="muted small center">{hour < 12 ? '☀️' : hour < 18 ? '🌤' : '🌙'} {t('model_hint')}</div>
+        <div class="muted small center">{hour < 12 ? '☀️' : hour < 18 ? '🌤' : '🌙'} {t('model_hint')} · {t('start_hint')}</div>
       </div>
       {newProj && <NewProjectModal onClose={() => setNewProj(false)} onCreated={(p) => (setProjectId(p.id), localStorage.setItem('tta.project', p.id))} />}
     </div>
@@ -184,6 +224,11 @@ export function SessionPage({ id }: { id: string }): JSX.Element {
           title={view.info?.title || t('new_chat')}
           right={
             <>
+              {view.info?.kind === 'chat' && (
+                <span class="chip" title={t('kind_chat_desc')}>
+                  <Icon name="spark" size={13} /> {t('kind_chat')}
+                </span>
+              )}
               {proj && (
                 <button class="chip" title={proj.path} onClick={() => navigate('/projects/' + proj.id)}>
                   <Icon name="folder" size={13} /> {proj.name}

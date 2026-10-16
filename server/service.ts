@@ -182,7 +182,7 @@ export class Service {
     return s;
   }
 
-  createSession(user: UserRecord, p: { project_id?: string; model?: string; mode?: PermissionMode; agent?: string | null; title?: string; origin?: 'chat' | 'schedule' }): SessionInfo {
+  createSession(user: UserRecord, p: { project_id?: string; model?: string; mode?: PermissionMode; agent?: string | null; title?: string; origin?: 'chat' | 'schedule'; kind?: 'agent' | 'chat' }): SessionInfo {
     const project = p.project_id ? this.getProject(user, p.project_id) : this.defaultProject(user);
     const model = this.validModel(p.model || user.default_model);
     const mode = this.validMode(user, p.mode || user.default_mode);
@@ -201,6 +201,7 @@ export class Service {
       pinned: false,
       archived: false,
       origin: p.origin ?? 'chat',
+      kind: p.kind === 'chat' ? 'chat' : 'agent',
       state: 'idle',
       sdk_session_id: null,
       files: [],
@@ -237,7 +238,7 @@ export class Service {
       emit: (sid, ev) => this.broadcast(sid, ev),
       envForUser: (u) => this.envForUser(u),
       agentsForUser: (u) => this.agentsForUser(u),
-      systemPromptFor: (u, p) => this.systemPromptFor(u, p),
+      systemPromptFor: (u, p, k) => this.systemPromptFor(u, p, k),
       log: this.log,
     };
     const r = new SessionRunner(ctx, session, project, owner);
@@ -321,7 +322,7 @@ export class Service {
     return out;
   }
 
-  systemPromptFor(user: UserRecord, project: Project): string {
+  systemPromptFor(user: UserRecord, project: Project, kind: 'agent' | 'chat' = 'agent'): string {
     const lang = user.lang === 'ru' ? 'Отвечай по-русски, если пользователь не попросил иначе.' : 'Foydalanuvchi bilan o\'zbek tilida (lotin yozuvida) muloqot qil, agar u boshqa tilda yozmasa.';
     const parts = [
       `Sen "${this.config.appName}" ilovasida ishlayotgan yordamchi agentsan. Foydalanuvchi: ${user.name}.`,
@@ -329,6 +330,7 @@ export class Service {
       `Fayl yaratganda yo'lini qisqa aytib o't. Yuklangan fayllar ${path.join(project.path, 'uploads')} papkasida.`,
       lang,
     ];
+    if (kind === 'chat') parts.push('Bu oddiy suhbat rejimi: fayl vositalari yo\'q, faqat internet qidiruvi mavjud. Savollarga bevosita, chat kabi javob ber; fayl yaratishni taklif qilma (fayllar bilan ishlash uchun foydalanuvchi "Agent" rejimida yangi suhbat ochadi).');
     if (user.instructions.trim()) parts.push('Foydalanuvchi ko\'rsatmalari:\n' + user.instructions.trim());
     if (project.instructions_note?.trim()) parts.push('Loyiha haqida:\n' + project.instructions_note.trim());
     return parts.join('\n\n');

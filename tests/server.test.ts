@@ -264,6 +264,24 @@ describe('server', () => {
     ws.close();
   });
 
+  test('suhbat turi: chat rejimida faqat qidiruv vositalari', async () => {
+    const created = await t.api('POST', '/api/sessions', { kind: 'chat', model: 'opus' });
+    const s = created.json.session as SessionInfo;
+    assert.equal(s.kind, 'chat');
+    assert.equal(s.model, 'opus');
+    const ws = await t.ws();
+    ws.send({ a: 'subscribe', session_id: s.id });
+    await ws.wait((e) => e.t === 'history');
+    ws.send({ a: 'send', session_id: s.id, text: 'salom' });
+    await ws.wait((e) => e.t === 'result');
+    const start = t.engine.starts.at(-1)!;
+    assert.deepEqual(start.tools, ['WebSearch', 'WebFetch', 'AskUserQuestion']);
+    assert.match(start.systemPromptAppend ?? '', /oddiy suhbat/);
+    const agentSess = await t.api('POST', '/api/sessions', {});
+    assert.equal((agentSess.json.session as SessionInfo).kind, 'agent');
+    ws.close();
+  });
+
   test('rejali vazifa: yaratish va keyingi vaqt', async () => {
     const r = await t.api('POST', '/api/schedules', { title: 'Kunlik', prompt: 'Hisobot tayyorla', spec: { kind: 'daily', time: '09:00' } });
     assert.equal(r.status, 200);

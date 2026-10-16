@@ -47,6 +47,8 @@ export interface SessionInfo {
   pinned: boolean;
   archived: boolean;
   origin: 'chat' | 'schedule';
+  /** 'agent' — fayllar/vositalar bilan (Cowork kabi), 'chat' — oddiy suhbat (faqat internet qidiruvi) */
+  kind: 'agent' | 'chat';
   state: SessionState;
   sdk_session_id: string | null;
   files: ResultFile[];

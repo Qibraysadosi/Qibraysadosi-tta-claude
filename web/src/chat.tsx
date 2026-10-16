@@ -596,6 +596,7 @@ export function Composer({ view, onSend, projectId, autoFocus }: { view: Session
         <input ref={fileRef} type="file" multiple hidden onChange={(e) => void upload((e.target as HTMLInputElement).files ?? []).then(() => ((e.target as HTMLInputElement).value = ''))} />
         {view && (
           <>
+            {view.info?.kind !== 'chat' && (
             <select class="select" value={mode} title={t('mode')} onChange={(e) => ws.send({ a: 'set_mode', session_id: view.id, mode: (e.target as HTMLSelectElement).value as PermissionMode })}>
               {modes.map((m) => (
                 <option key={m} value={m} title={t(`mode_${m}_desc` as never)}>
@@ -603,6 +604,7 @@ export function Composer({ view, onSend, projectId, autoFocus }: { view: Session
                 </option>
               ))}
             </select>
+            )}
             <select class="select" value={model} title={t('model')} onChange={(e) => ws.send({ a: 'set_model', session_id: view.id, model: (e.target as HTMLSelectElement).value })}>
               {models.map((m) => (
                 <option key={m.value} value={m.value} title={m.description}>

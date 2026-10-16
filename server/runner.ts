@@ -27,7 +27,7 @@ export interface RunnerContext {
   emit: (sessionId: string, ev: LiveEvent) => void;
   envForUser: (user: UserRecord) => Record<string, string | undefined>;
   agentsForUser: (user: UserRecord) => Record<string, AgentDefinition>;
-  systemPromptFor: (user: UserRecord, project: Project) => string;
+  systemPromptFor: (user: UserRecord, project: Project, kind: 'agent' | 'chat') => string;
   log: (msg: string, ...rest: unknown[]) => void;
 }
 
@@ -75,6 +75,8 @@ export const DISALLOWED_TOOLS = [
 const FILE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
 
 // Asosiy agentga beriladigan vositalar (native binar Glob/Grep va vazifa vositalarini faqat aniq ro'yxatda beradi).
+export const CHAT_TOOLS = ['WebSearch', 'WebFetch', 'AskUserQuestion'];
+
 export const AGENT_TOOLS = [
   'Agent',
   'AskUserQuestion',
@@ -222,12 +224,12 @@ export class SessionRunner {
       permissionMode: this.sdkMode,
       allowDangerouslySkipPermissions: bypass,
       resume: this.resumeId ?? undefined,
-      systemPromptAppend: this.ctx.systemPromptFor(this.user, this.project),
+      systemPromptAppend: this.ctx.systemPromptFor(this.user, this.project, this.session.kind ?? 'agent'),
       agents: Object.keys(agents).length ? agents : undefined,
       agent: this.session.agent && agents[this.session.agent] ? this.session.agent : undefined,
       env,
       disallowedTools: DISALLOWED_TOOLS,
-      tools: AGENT_TOOLS,
+      tools: this.session.kind === 'chat' ? CHAT_TOOLS : AGENT_TOOLS,
       canUseTool: (toolName, input, options) => this.onPermission(toolName, input, options),
       abortController: this.abort,
       claudeBinary: config.claudeBinary,

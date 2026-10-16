@@ -212,6 +212,12 @@ const uz = {
   empty_results_page: 'Agent yaratgan fayllar shu yerda to\'planadi.',
   version: 'Versiya',
   session_cost: 'Suhbat narxi',
+  kind: 'Turi',
+  kind_agent: 'Agent — fayllar bilan',
+  kind_agent_desc: 'Fayl yaratadi, buyruq bajaradi, papka bilan ishlaydi (Cowork kabi)',
+  kind_chat: 'Suhbat',
+  kind_chat_desc: 'Oddiy chat: savol-javob, matn, internet qidiruvi (arzonroq)',
+  start_hint: 'Model, rejim va turini shu yerda tanlang — suhbat ichida ham o\'zgartirish mumkin',
 };
 
 export type Dict = typeof uz;
@@ -425,6 +431,12 @@ const ru: Dict = {
   empty_results_page: 'Здесь собираются файлы, созданные агентом.',
   version: 'Версия',
   session_cost: 'Стоимость чата',
+  kind: 'Тип',
+  kind_agent: 'Агент — с файлами',
+  kind_agent_desc: 'Создаёт файлы, выполняет команды, работает с папкой (как Cowork)',
+  kind_chat: 'Чат',
+  kind_chat_desc: 'Обычный чат: вопросы, тексты, поиск в интернете (дешевле)',
+  start_hint: 'Модель, режим и тип выбираются здесь — в чате их тоже можно менять',
 };
 
 const dicts: Record<Lang, Dict> = { uz, ru };

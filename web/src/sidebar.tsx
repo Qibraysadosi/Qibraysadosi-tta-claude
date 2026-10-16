@@ -34,6 +34,7 @@ function SessionItem({ s, active }: { s: SessionInfo; active: boolean }): JSX.El
     <div class={`sess ${active ? 'active' : ''}`}>
       <button class="sess-main" onClick={() => navigate('/s/' + s.id)} title={s.title}>
         <span class={`sess-dot ${busy ? s.state : ''}`} />
+        {s.kind === 'chat' && <Icon name="spark" size={13} class="sess-kind" />}
         <span class="sess-title">{s.title || t('new_chat')}</span>
         {proj && proj.kind !== 'workspace' && <span class="sess-proj">{proj.name}</span>}
       </button>

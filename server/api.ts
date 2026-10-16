@@ -173,7 +173,7 @@ export function registerApi(r: Router, service: Service, opts: HttpOptions): voi
   // ---- sessiyalar ----
   r.add('GET', '/api/sessions', 'user', (c) => ({ sessions: service.sessionsOf(c.user!, c.url.searchParams.get('project') ?? undefined) }));
   r.add('POST', '/api/sessions', 'user', async (c) => {
-    const b = await c.json<{ project_id?: string; model?: string; mode?: PermissionMode; agent?: string | null }>();
+    const b = await c.json<{ project_id?: string; model?: string; mode?: PermissionMode; agent?: string | null; kind?: 'agent' | 'chat' }>();
     if (!cfg.apiKey) throw new ServiceError(400, 'no_api_key', 'API kalit o\'rnatilmagan');
     return { session: service.createSession(c.user!, b) };
   });

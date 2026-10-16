@@ -156,6 +156,7 @@ textarea.input { resize: vertical; min-height: 60px; font-family: var(--font); }
 .sess.active .sess-main { color: var(--accent); }
 .sess-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; }
 .sess-proj { font-size: 10.5px; color: var(--muted); background: var(--bg-4); padding: 1px 6px; border-radius: 999px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sess-kind { color: var(--muted); flex: none; }
 .sess-dot { width: 6px; height: 6px; border-radius: 50%; background: transparent; flex: none; }
 .sess-dot.running { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
 .sess-dot.requires_action { background: var(--warn); }
