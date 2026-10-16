@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - id: ver
+        shell: bash
+        run: echo "v=$(cat VERSION | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
       - run: npm ci
       - run: npm run build
       - run: npm run build:desktop
@@ -28,10 +31,12 @@ jobs:
           name: TTA-CLAUDE-windows
           path: release/*.exe
           if-no-files-found: error
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Release (teg yoki qo'lda ishga tushirilganda VERSION bo'yicha)
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          target_commitish: ${{ github.sha }}
+          name: TTA CLAUDE v${{ steps.ver.outputs.v }}
           files: release/*.exe
           generate_release_notes: true
 
