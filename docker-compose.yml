@@ -13,7 +13,6 @@ services:
     volumes:
       - ./data:/data
     mem_limit: 3g
-    cpus: 2
     logging:
       driver: json-file
       options:
