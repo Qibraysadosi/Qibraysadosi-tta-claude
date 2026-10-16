@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import type { PermissionMode } from '../shared/protocol.js';
 
 export interface AppConfig {
@@ -128,7 +129,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
 export function readVersion(): string {
   const candidates = [
     path.resolve('VERSION'),
-    path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'VERSION'),
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'VERSION'),
   ];
   for (const f of candidates) {
     try {
