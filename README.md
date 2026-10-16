@@ -22,7 +22,7 @@ Talablar: Ubuntu, Docker + Docker Compose, Caddy (bepulkurs.uz allaqachon Caddy 
 
 ```bash
 cd /root
-git clone https://github.com/Qibraysadosi/tta-claude.git
+git clone https://github.com/Qibraysadosi/Qibraysadosi-tta-claude.git
 cd tta-claude
 bash install.sh                                  # kalitni so'raydi (yoki keyin admin panelida), docker build, ishga tushadi
 bash install.sh site https://bepulkurs.uz/claude/   # Caddy'ga yo'l qo'shadi va qayta ishga tushiradi
